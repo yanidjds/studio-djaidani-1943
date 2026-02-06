@@ -1,9 +1,7 @@
-// get-prompts.js - Netlify Function
+// test-connection.js - Netlify Function
 const { MongoClient } = require('mongodb');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://djaidaniadam02_db_user:0WZcqW2iFYDyiDtb@cluster0.vlltcxf.mongodb.net/?retryWrites=true&w=majority&appName=cluster0';
-const DB_NAME = 'studio_djaidani_1943';
-const COLLECTION_NAME = 'prompts';
 
 exports.handler = async (event) => {
     const headers = {
@@ -19,53 +17,32 @@ exports.handler = async (event) => {
     let client;
     
     try {
-        const filters = event.body ? JSON.parse(event.body) : {};
-        
         client = await MongoClient.connect(MONGODB_URI, {
             useNewUrlParser: true,
-            useUnifiedTopology: true
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 5000
         });
         
-        const db = client.db(DB_NAME);
-        const collection = db.collection(COLLECTION_NAME);
-        
-        // Construire la requête
-        const query = {};
-        if (filters.gender) {
-            query.gender = filters.gender;
-        }
-        
-        // Récupérer les prompts
-        const prompts = await collection
-            .find(query)
-            .sort({ createdAt: -1 })
-            .limit(filters.limit || 100)
-            .toArray();
-        
-        // Convertir _id en string
-        const formattedPrompts = prompts.map(p => ({
-            ...p,
-            _id: p._id.toString()
-        }));
+        // Ping the database
+        await client.db('admin').command({ ping: 1 });
         
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
                 success: true,
-                prompts: formattedPrompts
+                message: 'Connexion MongoDB réussie'
             })
         };
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Connection error:', error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
                 success: false,
-                error: error.message,
-                prompts: []
+                error: error.message
             })
         };
     } finally {
