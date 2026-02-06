@@ -1,8 +1,7 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 
 exports.handler = async (event) => {
-    // Autoriser uniquement POST
-    if (event.httpMethod !== 'POST') {
+    if (event.httpMethod !== 'DELETE') {
         return {
             statusCode: 405,
             body: JSON.stringify({ error: 'Method Not Allowed' })
@@ -17,8 +16,9 @@ exports.handler = async (event) => {
         const db = client.db('studio_djaidani_1943');
         const collection = db.collection('prompts');
 
-        const promptData = JSON.parse(event.body);
-        const result = await collection.insertOne(promptData);
+        const { id } = JSON.parse(event.body);
+        
+        const result = await collection.deleteOne({ _id: new ObjectId(id) });
 
         return {
             statusCode: 200,
@@ -28,11 +28,11 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
                 success: true,
-                id: result.insertedId
+                deleted: result.deletedCount
             })
         };
     } catch (error) {
-        console.error('Error saving prompt:', error);
+        console.error('Error deleting prompt:', error);
         return {
             statusCode: 500,
             headers: {

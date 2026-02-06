@@ -1,8 +1,8 @@
 const { MongoClient } = require('mongodb');
 
 exports.handler = async (event) => {
-    // Autoriser uniquement POST
-    if (event.httpMethod !== 'POST') {
+    // Autoriser GET
+    if (event.httpMethod !== 'GET') {
         return {
             statusCode: 405,
             body: JSON.stringify({ error: 'Method Not Allowed' })
@@ -17,8 +17,7 @@ exports.handler = async (event) => {
         const db = client.db('studio_djaidani_1943');
         const collection = db.collection('prompts');
 
-        const promptData = JSON.parse(event.body);
-        const result = await collection.insertOne(promptData);
+        const prompts = await collection.find({}).sort({ createdAt: -1 }).toArray();
 
         return {
             statusCode: 200,
@@ -28,11 +27,11 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
                 success: true,
-                id: result.insertedId
+                prompts: prompts
             })
         };
     } catch (error) {
-        console.error('Error saving prompt:', error);
+        console.error('Error fetching prompts:', error);
         return {
             statusCode: 500,
             headers: {
