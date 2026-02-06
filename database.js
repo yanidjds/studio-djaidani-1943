@@ -1,334 +1,419 @@
 /* ==========================================
    STUDIO PHOTO DJAIDANI 1943 - DATABASE
-   Gestion MongoDB via Netlify Functions
+   Gestion MongoDB & LocalStorage - VERSION PROFESSIONNELLE
    ========================================== */
 
 class DatabaseManager {
     constructor() {
-        this.isNetlify = window.location.hostname !== 'localhost' && 
-                         window.location.hostname !== '127.0.0.1' &&
-                         window.location.hostname !== '';
+        this.db = null;
+        this.isConnected = false;
+        this.localCache = new Map();
         
-        this.apiBase = this.isNetlify ? '/.netlify/functions' : '';
-        
-        console.log('🗄️ DatabaseManager initialisé');
-        console.log('Mode:', this.isNetlify ? 'NETLIFY (Production)' : 'LOCAL (Development)');
+        console.log('💾 DatabaseManager initialisé');
     }
-
-    // ==================== SAUVEGARDER UN PROMPT ====================
+    
+    // ==================== MONGODB CONNECTION ====================
+    
+    /**
+     * Tester la connexion MongoDB via API Netlify Function
+     */
+    async testConnection() {
+        try {
+            console.log('🔌 Test de connexion MongoDB...');
+            
+            const response = await fetch('/.netlify/functions/test-connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.isConnected = true;
+                console.log('✅ Connexion MongoDB réussie');
+                return { success: true, message: 'Connexion réussie' };
+            } else {
+                throw new Error(data.error || 'Échec de connexion');
+            }
+            
+        } catch (error) {
+            console.error('❌ Erreur de connexion:', error);
+            this.isConnected = false;
+            return { success: false, error: error.message };
+        }
+    }
+    
+    // ==================== PROMPTS CRUD ====================
+    
+    /**
+     * Sauvegarder un nouveau prompt
+     */
     async savePrompt(promptData) {
         try {
             console.log('💾 Sauvegarde du prompt...');
             
-            // Validation des données
-            if (!promptData.title || !promptData.englishText) {
-                throw new Error('Données incomplètes');
-            }
-
-            // Appel à la fonction Netlify
-            const response = await fetch(`${this.apiBase}/save-prompt`, {
+            // Préparer les données
+            const prompt = {
+                title: promptData.title || 'Sans titre',
+                gender: promptData.gender,
+                frenchText: promptData.frenchText,
+                englishText: promptData.englishText,
+                modifications: promptData.modifications || [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                version: 1
+            };
+            
+            // Sauvegarder en local d'abord
+            this.saveToLocalStorage(prompt);
+            
+            // Sauvegarder sur MongoDB
+            const response = await fetch('/.netlify/functions/save-prompt', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(promptData)
+                body: JSON.stringify(prompt)
             });
-
-            const result = await response.json();
             
-            if (!result.success) {
-                throw new Error(result.error || 'Erreur lors de la sauvegarde');
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log('✅ Prompt sauvegardé avec succès');
+                prompt._id = data.promptId;
+                this.localCache.set(data.promptId, prompt);
+                return { success: true, promptId: data.promptId, prompt };
+            } else {
+                throw new Error(data.error || 'Échec de sauvegarde');
             }
-
-            console.log('✅ Prompt sauvegardé avec succès');
             
-            // Mettre à jour le cache local
-            this.updateLocalCache(promptData);
-            
-            return result;
         } catch (error) {
-            console.error('❌ Erreur savePrompt:', error);
-            
-            // Fallback: sauvegarder localement
-            this.saveLocally(promptData);
-            
-            throw error;
+            console.error('❌ Erreur de sauvegarde:', error);
+            return { success: false, error: error.message };
         }
     }
-
-    // ==================== RÉCUPÉRER TOUS LES PROMPTS ====================
-    async getAllPrompts() {
+    
+    /**
+     * Récupérer tous les prompts
+     */
+    async getAllPrompts(filters = {}) {
         try {
-            console.log('📥 Récupération de tous les prompts...');
+            console.log('📥 Récupération des prompts...');
             
-            const response = await fetch(`${this.apiBase}/get-prompts`, {
-                method: 'GET',
+            const response = await fetch('/.netlify/functions/get-prompts', {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                }
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(filters)
             });
-
-            const result = await response.json();
             
-            if (!result.success) {
-                throw new Error(result.error || 'Erreur lors de la récupération');
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log(`✅ ${data.prompts.length} prompts récupérés`);
+                
+                // Mettre à jour le cache local
+                data.prompts.forEach(prompt => {
+                    this.localCache.set(prompt._id, prompt);
+                });
+                
+                return { success: true, prompts: data.prompts };
+            } else {
+                throw new Error(data.error || 'Échec de récupération');
             }
-
-            console.log(`✅ ${result.prompts.length} prompts récupérés`);
             
-            // Mettre à jour le cache local
-            localStorage.setItem('cached_prompts', JSON.stringify(result.prompts));
-            localStorage.setItem('cache_time', Date.now().toString());
-            
-            return result.prompts;
         } catch (error) {
-            console.error('❌ Erreur getAllPrompts:', error);
+            console.error('❌ Erreur de récupération:', error);
             
-            // Fallback: récupérer depuis le cache local
-            return this.getLocalPrompts();
+            // Fallback sur le localStorage
+            const localPrompts = this.getFromLocalStorage();
+            return { success: false, prompts: localPrompts, error: error.message };
         }
     }
-
-    // ==================== METTRE À JOUR UN PROMPT ====================
-    async updatePrompt(id, updates) {
+    
+    /**
+     * Mettre à jour un prompt existant
+     */
+    async updatePrompt(promptId, updates) {
         try {
             console.log('🔄 Mise à jour du prompt...');
             
-            const response = await fetch(`${this.apiBase}/update-prompt`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id, updates })
-            });
-
-            const result = await response.json();
+            const updateData = {
+                ...updates,
+                updatedAt: new Date().toISOString()
+            };
             
-            if (!result.success) {
-                throw new Error(result.error || 'Erreur lors de la mise à jour');
+            const response = await fetch('/.netlify/functions/update-prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    promptId,
+                    updates: updateData
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log('✅ Prompt mis à jour avec succès');
+                
+                // Mettre à jour le cache
+                if (this.localCache.has(promptId)) {
+                    const cached = this.localCache.get(promptId);
+                    this.localCache.set(promptId, { ...cached, ...updateData });
+                }
+                
+                return { success: true };
+            } else {
+                throw new Error(data.error || 'Échec de mise à jour');
             }
-
-            console.log('✅ Prompt mis à jour avec succès');
-            return result;
+            
         } catch (error) {
-            console.error('❌ Erreur updatePrompt:', error);
-            throw error;
+            console.error('❌ Erreur de mise à jour:', error);
+            return { success: false, error: error.message };
         }
     }
-
-    // ==================== SUPPRIMER UN PROMPT ====================
-    async deletePrompt(id) {
+    
+    /**
+     * Supprimer un prompt
+     */
+    async deletePrompt(promptId) {
         try {
             console.log('🗑️ Suppression du prompt...');
             
-            const response = await fetch(`${this.apiBase}/delete-prompt`, {
-                method: 'DELETE',
+            const response = await fetch('/.netlify/functions/delete-prompt', {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ id })
+                body: JSON.stringify({ promptId })
             });
-
-            const result = await response.json();
             
-            if (!result.success) {
-                throw new Error(result.error || 'Erreur lors de la suppression');
-            }
-
-            console.log('✅ Prompt supprimé avec succès');
-            return result;
-        } catch (error) {
-            console.error('❌ Erreur deletePrompt:', error);
-            throw error;
-        }
-    }
-
-    // ==================== RECHERCHER DES PROMPTS ====================
-    async searchPrompts(query) {
-        try {
-            const allPrompts = await this.getAllPrompts();
+            const data = await response.json();
             
-            if (!query || query.trim() === '') {
-                return allPrompts;
-            }
-
-            const searchTerm = query.toLowerCase().trim();
-            
-            return allPrompts.filter(prompt => {
-                const titleMatch = prompt.title.toLowerCase().includes(searchTerm);
-                const frenchMatch = prompt.frenchText.toLowerCase().includes(searchTerm);
-                const englishMatch = prompt.englishText.toLowerCase().includes(searchTerm);
+            if (data.success) {
+                console.log('✅ Prompt supprimé avec succès');
                 
-                return titleMatch || frenchMatch || englishMatch;
-            });
-        } catch (error) {
-            console.error('❌ Erreur searchPrompts:', error);
-            return [];
-        }
-    }
-
-    // ==================== FILTRER PAR GENRE ====================
-    async filterByGender(gender) {
-        try {
-            const allPrompts = await this.getAllPrompts();
-            
-            if (gender === 'all') {
-                return allPrompts;
+                // Supprimer du cache
+                this.localCache.delete(promptId);
+                
+                return { success: true };
+            } else {
+                throw new Error(data.error || 'Échec de suppression');
             }
             
-            return allPrompts.filter(prompt => prompt.gender === gender);
         } catch (error) {
-            console.error('❌ Erreur filterByGender:', error);
-            return [];
+            console.error('❌ Erreur de suppression:', error);
+            return { success: false, error: error.message };
         }
     }
-
-    // ==================== OBTENIR LES PROMPTS RÉCENTS ====================
-    async getRecentPrompts(limit = 6) {
+    
+    // ==================== LOCAL STORAGE ====================
+    
+    /**
+     * Sauvegarder dans le localStorage
+     */
+    saveToLocalStorage(prompt) {
         try {
-            const allPrompts = await this.getAllPrompts();
+            const existingPrompts = this.getFromLocalStorage();
+            const newPrompts = [prompt, ...existingPrompts.slice(0, 49)]; // Garder max 50
             
-            return allPrompts
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .slice(0, limit);
+            localStorage.setItem('djaidani_prompts', JSON.stringify(newPrompts));
+            console.log('💾 Sauvegardé en local');
+            
         } catch (error) {
-            console.error('❌ Erreur getRecentPrompts:', error);
+            console.error('❌ Erreur localStorage:', error);
+        }
+    }
+    
+    /**
+     * Récupérer depuis le localStorage
+     */
+    getFromLocalStorage() {
+        try {
+            const stored = localStorage.getItem('djaidani_prompts');
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.error('❌ Erreur lecture localStorage:', error);
             return [];
         }
     }
-
-    // ==================== OBTENIR LES STATISTIQUES ====================
+    
+    /**
+     * Effacer le localStorage
+     */
+    clearLocalStorage() {
+        try {
+            localStorage.removeItem('djaidani_prompts');
+            console.log('🗑️ LocalStorage effacé');
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Erreur effacement:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    // ==================== STATISTIQUES ====================
+    
+    /**
+     * Obtenir les statistiques
+     */
     async getStats() {
         try {
-            const allPrompts = await this.getAllPrompts();
+            const result = await this.getAllPrompts();
+            const prompts = result.prompts || [];
             
-            const stats = {
-                total: allPrompts.length,
-                male: allPrompts.filter(p => p.gender === 'male').length,
-                female: allPrompts.filter(p => p.gender === 'female').length,
-                lastActivity: allPrompts.length > 0 ? 
-                    this.formatLastActivity(allPrompts[0].createdAt) : '-'
+            return {
+                total: prompts.length,
+                byGender: {
+                    male: prompts.filter(p => p.gender === 'male').length,
+                    female: prompts.filter(p => p.gender === 'female').length
+                },
+                lastActivity: prompts.length > 0 
+                    ? new Date(prompts[0].createdAt).toLocaleDateString('fr-FR')
+                    : '-'
             };
             
-            return stats;
         } catch (error) {
-            console.error('❌ Erreur getStats:', error);
+            console.error('❌ Erreur stats:', error);
             return {
                 total: 0,
-                male: 0,
-                female: 0,
+                byGender: { male: 0, female: 0 },
                 lastActivity: '-'
             };
         }
     }
-
-    // ==================== FONCTIONS UTILITAIRES ====================
     
-    // Sauvegarder localement (fallback)
-    saveLocally(promptData) {
+    /**
+     * Obtenir les prompts récents
+     */
+    async getRecentPrompts(limit = 6) {
         try {
-            const localPrompts = this.getLocalPrompts();
-            localPrompts.unshift(promptData);
-            localStorage.setItem('local_prompts', JSON.stringify(localPrompts));
-            console.log('💾 Sauvegarde locale effectuée');
-        } catch (error) {
-            console.error('❌ Erreur sauvegarde locale:', error);
-        }
-    }
-
-    // Récupérer depuis le cache local
-    getLocalPrompts() {
-        try {
-            const cached = localStorage.getItem('cached_prompts');
-            if (cached) {
-                return JSON.parse(cached);
-            }
+            const result = await this.getAllPrompts();
+            const prompts = result.prompts || [];
             
-            const local = localStorage.getItem('local_prompts');
-            if (local) {
-                return JSON.parse(local);
-            }
-            
-            return [];
+            return prompts
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, limit);
+                
         } catch (error) {
-            console.error('❌ Erreur récupération locale:', error);
+            console.error('❌ Erreur prompts récents:', error);
             return [];
         }
     }
-
-    // Mettre à jour le cache local
-    updateLocalCache(promptData) {
+    
+    // ==================== SYNCHRONISATION ====================
+    
+    /**
+     * Synchroniser les données
+     */
+    async syncData() {
         try {
-            const cached = this.getLocalPrompts();
-            cached.unshift(promptData);
-            localStorage.setItem('cached_prompts', JSON.stringify(cached));
-        } catch (error) {
-            console.error('❌ Erreur mise à jour cache:', error);
-        }
-    }
-
-    // Formater la dernière activité
-    formatLastActivity(timestamp) {
-        try {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
+            console.log('🔄 Synchronisation des données...');
             
-            const minutes = Math.floor(diff / 60000);
-            const hours = Math.floor(diff / 3600000);
-            const days = Math.floor(diff / 86400000);
+            // Récupérer tous les prompts du serveur
+            const result = await this.getAllPrompts();
             
-            if (minutes < 1) return 'À l\'instant';
-            if (minutes < 60) return `Il y a ${minutes} min`;
-            if (hours < 24) return `Il y a ${hours}h`;
-            if (days < 7) return `Il y a ${days}j`;
-            
-            return date.toLocaleDateString('fr-FR');
-        } catch (error) {
-            return '-';
-        }
-    }
-
-    // Vérifier la connexion
-    async checkConnection() {
-        try {
-            const response = await fetch(`${this.apiBase}/get-prompts`);
-            return response.ok;
-        } catch (error) {
-            return false;
-        }
-    }
-
-    // Synchroniser les données locales avec le serveur
-    async syncLocalData() {
-        try {
-            const localPrompts = JSON.parse(localStorage.getItem('local_prompts') || '[]');
-            
-            if (localPrompts.length === 0) {
-                console.log('Aucune donnée locale à synchroniser');
-                return;
-            }
-
-            console.log(`🔄 Synchronisation de ${localPrompts.length} prompts locaux...`);
-            
-            for (const prompt of localPrompts) {
-                await this.savePrompt(prompt);
+            if (result.success) {
+                // Mettre à jour le timestamp de dernière synchro
+                localStorage.setItem(
+                    CONFIG.STORAGE_KEYS.LAST_SYNC,
+                    new Date().toISOString()
+                );
+                
+                console.log('✅ Synchronisation réussie');
+                return { success: true, count: result.prompts.length };
+            } else {
+                throw new Error('Échec de synchronisation');
             }
             
-            // Nettoyer les données locales
-            localStorage.removeItem('local_prompts');
-            
-            console.log('✅ Synchronisation terminée');
         } catch (error) {
-            console.error('❌ Erreur lors de la synchronisation:', error);
+            console.error('❌ Erreur de synchronisation:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    /**
+     * Obtenir la date de dernière synchronisation
+     */
+    getLastSyncDate() {
+        try {
+            const lastSync = localStorage.getItem(CONFIG.STORAGE_KEYS.LAST_SYNC);
+            return lastSync ? new Date(lastSync).toLocaleString('fr-FR') : 'Jamais';
+        } catch (error) {
+            return 'Jamais';
+        }
+    }
+    
+    // ==================== EXPORT / IMPORT ====================
+    
+    /**
+     * Exporter les données
+     */
+    async exportData() {
+        try {
+            const result = await this.getAllPrompts();
+            const prompts = result.prompts || [];
+            
+            const dataStr = JSON.stringify(prompts, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `studio-djaidani-export-${Date.now()}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            
+            console.log('✅ Données exportées');
+            return { success: true };
+            
+        } catch (error) {
+            console.error('❌ Erreur export:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    /**
+     * Importer des données
+     */
+    async importData(file) {
+        try {
+            console.log('📥 Import des données...');
+            
+            const text = await file.text();
+            const data = JSON.parse(text);
+            
+            if (!Array.isArray(data)) {
+                throw new Error('Format de fichier invalide');
+            }
+            
+            // Sauvegarder chaque prompt
+            let successCount = 0;
+            for (const prompt of data) {
+                const result = await this.savePrompt(prompt);
+                if (result.success) successCount++;
+            }
+            
+            console.log(`✅ ${successCount}/${data.length} prompts importés`);
+            return { success: true, count: successCount, total: data.length };
+            
+        } catch (error) {
+            console.error('❌ Erreur import:', error);
+            return { success: false, error: error.message };
         }
     }
 }
 
 // ==================== INITIALISATION ====================
-const db = new DatabaseManager();
 
-// Exposer globalement
-window.db = db;
+// Créer l'instance globale
+window.DB = new DatabaseManager();
 
-console.log('✅ Database Manager chargé');
+console.log('✅ DatabaseManager prêt');

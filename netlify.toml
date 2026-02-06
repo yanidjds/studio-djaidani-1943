@@ -1,7 +1,20 @@
 [build]
   functions = "netlify/functions"
+  publish = "."
+  command = "npm run build"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[functions]
+  node_bundler = "esbuild"
+
+[dev]
+  framework = "#static"
+  command = ""
+  targetPort = 8888
+  port = 8888
+  publish = "."
+  autoLaunch = true
