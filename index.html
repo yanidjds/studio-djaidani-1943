@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Photo Djaidani 1943 - Portraits Patriotiques Professionnels</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    
+    <!-- ==================== LOADER ==================== -->
+    <div id="loader" class="loader">
+        <div class="loader-content">
+            <div class="camera-icon">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="loader-text">Studio Djaidani 1943</div>
+            <div class="loader-bar">
+                <div class="loader-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-camera-retro"></i>
+                <div class="logo-text">
+                    <h1>Studio Photo Djaidani</h1>
+                    <span class="founded">Fondé 1943</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-view="home">
+                    <i class="fas fa-home"></i>
+                    <span>Accueil</span>
+                </button>
+                <button class="nav-btn" data-view="create">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Nouveau</span>
+                </button>
+                <button class="nav-btn" data-view="archive">
+                    <i class="fas fa-archive"></i>
+                    <span>Archives</span>
+                </button>
+            </nav>
+
+            <div class="header-actions">
+                <div class="sync-status" id="syncStatus">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Synchronisé</span>
+                </div>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="main-content">
+        
+        <!-- ==================== HOME VIEW ==================== -->
+        <section id="homeView" class="view-section active">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h2 class="hero-title">Portraits Patriotiques Algériens</h2>
+                    <p class="hero-subtitle">Créez des prompts professionnels ultra-réalistes avec l'intelligence artificielle</p>
+                    <div class="hero-stats">
+                        <div class="stat-card">
+                            <i class="fas fa-images"></i>
+                            <div class="stat-info">
+                                <span class="stat-number" id="totalPrompts">0</span>
+                                <span class="stat-label">Prompts créés</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-clock"></i>
+                            <div class="stat-info">
+                                <span class="stat-number" id="lastActivity">-</span>
+                                <span class="stat-label">Dernière activité</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="cta-button" onclick="switchView('create')">
+                        <i class="fas fa-magic"></i>
+                        Créer un nouveau prompt
+                    </button>
+                </div>
+                <div class="hero-image">
+                    <div class="floating-card card-1">
+                        <i class="fas fa-flag"></i>
+                        <span>Algérie</span>
+                    </div>
+                    <div class="floating-card card-2">
+                        <i class="fas fa-user"></i>
+                        <span>Ultra-réaliste</span>
+                    </div>
+                    <div class="floating-card card-3">
+                        <i class="fas fa-star"></i>
+                        <span>Professionnel</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Prompts -->
+            <div class="recent-section">
+                <div class="section-header">
+                    <h3>Prompts récents</h3>
+                    <button class="btn-link" onclick="switchView('archive')">
+                        Voir tout <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="recent-grid" id="recentPromptsGrid">
+                    <!-- Will be populated dynamically -->
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>Aucun prompt pour le moment</p>
+                        <button class="btn-secondary" onclick="switchView('create')">Créer votre premier prompt</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== CREATE VIEW ==================== -->
+        <section id="createView" class="view-section">
+            <div class="create-container">
+                
+                <!-- Step Indicator -->
+                <div class="steps-indicator">
+                    <div class="step active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">Genre</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">Texte</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-label">Génération</div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Gender Selection -->
+                <div class="step-content" id="step1" style="display: block;">
+                    <div class="step-title">
+                        <h2>Sélectionnez le genre du sujet</h2>
+                        <p>Choisissez le type de portrait à générer</p>
+                    </div>
+                    
+                    <div class="gender-selection">
+                        <div class="gender-card" data-gender="male">
+                            <div class="gender-icon">
+                                <i class="fas fa-male"></i>
+                            </div>
+                            <h3>Garçon / Homme</h3>
+                            <p>Portrait patriotique masculin</p>
+                            <div class="gender-badge">Costume formel</div>
+                        </div>
+                        
+                        <div class="gender-card" data-gender="female">
+                            <div class="gender-icon">
+                                <i class="fas fa-female"></i>
+                            </div>
+                            <h3>Fille / Femme</h3>
+                            <p>Portrait patriotique féminin</p>
+                            <div class="gender-badge">Blazer élégant</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Text Input -->
+                <div class="step-content" id="step2" style="display: none;">
+                    <div class="step-title">
+                        <h2>Créez votre prompt</h2>
+                        <p>Écrivez votre description en français, nous la transformerons en prompt professionnel</p>
+                    </div>
+
+                    <!-- Title Input -->
+                    <div class="input-group">
+                        <label for="promptTitle">
+                            <i class="fas fa-heading"></i>
+                            Titre du prompt (optionnel)
+                        </label>
+                        <input 
+                            type="text" 
+                            id="promptTitle" 
+                            placeholder="Ex: Portrait Spider-Man, Portrait Militaire, etc."
+                            maxlength="100"
+                        >
+                        <span class="char-counter"><span id="titleCounter">0</span>/100</span>
+                    </div>
+
+                    <!-- Editor Container -->
+                    <div class="editor-container">
+                        <!-- French Input -->
+                        <div class="editor-panel french-panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <i class="fas fa-pencil-alt"></i>
+                                    Français (votre texte)
+                                </div>
+                                <div class="panel-actions">
+                                    <button class="btn-icon" id="clearFrenchBtn" title="Effacer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <button class="btn-icon" id="pasteBtn" title="Coller">
+                                        <i class="fas fa-paste"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="editor-wrapper">
+                                <textarea 
+                                    id="frenchText" 
+                                    class="editor-textarea"
+                                    placeholder="Écrivez votre description en français ici...&#10;&#10;Exemple: Une prise de vue cinématographique photoréaliste en plongée montre un homme portant un costume de Spider-Man, tombant à travers une ligne d'horizon urbaine..."
+                                    rows="15"
+                                ></textarea>
+                                <div class="editor-footer">
+                                    <span class="word-count">
+                                        <i class="fas fa-file-word"></i>
+                                        <span id="frenchWordCount">0</span> mots
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- English Output -->
+                        <div class="editor-panel english-panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <i class="fas fa-language"></i>
+                                    Anglais (professionnel)
+                                </div>
+                                <div class="panel-actions">
+                                    <button class="btn-icon" id="copyEnglishBtn" title="Copier" style="display: none;">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button class="btn-icon" id="regenerateBtn" title="Régénérer" style="display: none;">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="editor-wrapper">
+                                <div id="englishText" class="editor-display">
+                                    <div class="empty-state-editor">
+                                        <i class="fas fa-magic"></i>
+                                        <p>Votre prompt professionnel apparaîtra ici</p>
+                                        <small>Cliquez sur "Générer" pour créer votre prompt anglais</small>
+                                    </div>
+                                </div>
+                                <div class="editor-footer" style="display: none;" id="englishFooter">
+                                    <span class="word-count">
+                                        <i class="fas fa-file-word"></i>
+                                        <span id="englishWordCount">0</span> mots
+                                    </span>
+                                    <span class="generation-time">
+                                        <i class="fas fa-clock"></i>
+                                        <span id="generationTime">-</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modification Section (appears after generation) -->
+                    <div class="modification-section" id="modificationSection" style="display: none;">
+                        <div class="modification-header">
+                            <i class="fas fa-edit"></i>
+                            <h3>Modifier le prompt généré</h3>
+                        </div>
+                        <div class="modification-input-group">
+                            <textarea 
+                                id="modificationText" 
+                                class="modification-textarea"
+                                placeholder="Écrivez vos modifications en français ou arabe...&#10;&#10;Exemples:&#10;- Change l'âge à 15 ans&#10;- Ajoute un sourire&#10;- Modifie la couleur du costume en rouge&#10;- Plus de détails sur l'arrière-plan"
+                                rows="4"
+                            ></textarea>
+                            <button class="btn-modify" id="applyModificationBtn">
+                                <i class="fas fa-check"></i>
+                                Appliquer les modifications
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-secondary" onclick="goToStep(1)">
+                            <i class="fas fa-arrow-left"></i>
+                            Retour
+                        </button>
+                        <button class="btn-primary" id="generateBtn">
+                            <i class="fas fa-magic"></i>
+                            <span>Générer le prompt professionnel</span>
+                        </button>
+                        <button class="btn-success" id="saveBtn" style="display: none;">
+                            <i class="fas fa-save"></i>
+                            <span>Enregistrer</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div class="step-content" id="step3" style="display: none;">
+                    <div class="success-animation">
+                        <div class="success-checkmark">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h2>Prompt créé avec succès !</h2>
+                        <p>Votre prompt professionnel a été généré et sauvegardé</p>
+                        
+                        <div class="success-actions">
+                            <button class="btn-primary" onclick="copyFinalPrompt()">
+                                <i class="fas fa-copy"></i>
+                                Copier le prompt
+                            </button>
+                            <button class="btn-secondary" onclick="createNewPrompt()">
+                                <i class="fas fa-plus"></i>
+                                Nouveau prompt
+                            </button>
+                            <button class="btn-secondary" onclick="switchView('archive')">
+                                <i class="fas fa-archive"></i>
+                                Voir les archives
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== ARCHIVE VIEW ==================== -->
+        <section id="archiveView" class="view-section">
+            <div class="archive-container">
+                
+                <!-- Archive Header -->
+                <div class="archive-header">
+                    <div class="archive-title">
+                        <h2>Archives des prompts</h2>
+                        <span class="archive-count" id="archiveCount">0 prompts</span>
+                    </div>
+                    
+                    <!-- Search and Filters -->
+                    <div class="archive-controls">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input 
+                                type="text" 
+                                id="searchInput" 
+                                placeholder="Rechercher par titre..."
+                            >
+                            <button class="clear-search" id="clearSearchBtn" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <button class="filter-btn active" data-filter="all">
+                                <i class="fas fa-list"></i>
+                                Tous
+                            </button>
+                            <button class="filter-btn" data-filter="male">
+                                <i class="fas fa-male"></i>
+                                Garçons
+                            </button>
+                            <button class="filter-btn" data-filter="female">
+                                <i class="fas fa-female"></i>
+                                Filles
+                            </button>
+                        </div>
+
+                        <div class="sort-dropdown">
+                            <button class="sort-btn" id="sortBtn">
+                                <i class="fas fa-sort"></i>
+                                <span>Plus récent</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="sort-menu" id="sortMenu">
+                                <div class="sort-option active" data-sort="recent">
+                                    <i class="fas fa-clock"></i>
+                                    Plus récent
+                                </div>
+                                <div class="sort-option" data-sort="oldest">
+                                    <i class="fas fa-history"></i>
+                                    Plus ancien
+                                </div>
+                                <div class="sort-option" data-sort="title">
+                                    <i class="fas fa-sort-alpha-down"></i>
+                                    Titre (A-Z)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archive Grid -->
+                <div class="archive-grid" id="archiveGrid">
+                    <!-- Will be populated dynamically -->
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>Aucun prompt archivé</p>
+                        <button class="btn-secondary" onclick="switchView('create')">Créer votre premier prompt</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+    
+    <!-- Prompt Detail Modal -->
+    <div class="modal" id="promptModal">
+        <div class="modal-overlay" onclick="closeModal('promptModal')"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="modalPromptTitle">Détails du prompt</h3>
+                <button class="modal-close" onclick="closeModal('promptModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalPromptBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('promptModal')">Fermer</button>
+                <button class="btn-primary" id="modalCopyBtn">
+                    <i class="fas fa-copy"></i>
+                    Copier le prompt
+                </button>
+                <button class="btn-danger" id="modalDeleteBtn">
+                    <i class="fas fa-trash"></i>
+                    Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-overlay" onclick="closeModal('confirmModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirmation</h3>
+                <button class="modal-close" onclick="closeModal('confirmModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="confirmMessage">
+                <!-- Dynamic message -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('confirmModal')">Annuler</button>
+                <button class="btn-danger" id="confirmActionBtn">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script src="config.js"></script>
+    <script src="templates.js"></script>
+    <script src="database.js"></script>
+    <script src="gemini.js"></script>
+    <script src="app.js"></script>
+    
+    <!-- Fix pour le loader -->
+    <script>
+        // Force le loader à disparaître après le chargement
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    loader.style.transition = 'opacity 0.5s ease';
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                    }, 500);
+                    console.log('✅ Loader masqué');
+                }
+            }, 1000);
+        });
+        
+        // Backup: forcer après 3 secondes maximum
+        setTimeout(function() {
+            const loader = document.getElementById('loader');
+            if (loader && window.getComputedStyle(loader).display !== 'none') {
+                loader.style.display = 'none';
+                console.log('⚠️ Loader forcé (backup)');
+            }
+        }, 3000);
+    </script>
+    
+</body>
+</html>

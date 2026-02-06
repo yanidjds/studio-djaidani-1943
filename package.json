@@ -1,0 +1,20 @@
+{
+  "name": "studio-djaidani-1943",
+  "version": "1.0.0",
+  "description": "Studio de génération de prompts professionnels pour portraits patriotiques algériens",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ai",
+    "prompts",
+    "algeria",
+    "photography"
+  ],
+  "author": "Studio Photo Djaidani",
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}
