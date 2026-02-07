@@ -1,4 +1,3 @@
-cat > /home/claude/studio-djaidani-final/config.js << 'ENDOFFILE'
 /* ==========================================
    STUDIO PHOTO DJAIDANI 1943 - CONFIG
    Configuration & API Keys - VERSION PROFESSIONNELLE
@@ -49,5 +48,3 @@ const CONFIG = {
 window.CONFIG = CONFIG;
 
 console.log('✅ Configuration chargée - v' + CONFIG.APP_VERSION);
-ENDOFFILE
-cat /home/claude/studio-djaidani-final/config.js

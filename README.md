@@ -1,209 +1,175 @@
-# 📸 Studio Photo Djaidani 1943
+# Studio Photo Djaidani 1943 - Générateur de Prompts IA 🎨📸
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+Application web professionnelle pour générer des prompts IA pour portraits patriotiques algériens.
 
-Application professionnelle de génération de prompts pour portraits patriotiques algériens ultra-réalistes.
+## 📋 PROBLÈME RÉSOLU
 
-## 🌟 Fonctionnalités
+Le problème était dans le fichier `config.js` qui contenait des commandes shell au lieu du code JavaScript pur. Tous les fichiers ont été corrigés.
 
-### ✨ Génération de Prompts Intelligente
-- **Transformation automatique** : Convertissez vos descriptions françaises en prompts anglais professionnels
-- **Templates spécialisés** : Templates distincts pour portraits masculins et féminins
-- **IA Gemini** : Utilisation de Google Gemini AI pour une qualité exceptionnelle
-- **Modifications itératives** : Affinez vos prompts avec des modifications successives
+## 🚀 Installation sur Netlify
 
-### 💾 Gestion des Données
-- **Synchronisation cloud** : MongoDB Atlas pour un stockage sécurisé
-- **Sauvegarde locale** : Fallback automatique sur localStorage
-- **Multi-appareils** : Accédez à vos prompts depuis n'importe quel appareil
-- **Export/Import** : Exportez et importez vos données au format JSON
+### 1. Préparer les fichiers
 
-### 🎨 Interface Moderne
-- **Design responsive** : Fonctionne parfaitement sur mobile, tablette et desktop
-- **Mode sombre** : Thème clair et sombre avec commutation facile
-- **Animations fluides** : Transitions et animations professionnelles
-- **UX optimisée** : Interface intuitive et facile à utiliser
-
-### 📊 Fonctionnalités Avancées
-- **Recherche et filtres** : Trouvez rapidement vos prompts
-- **Statistiques** : Suivez votre activité
-- **Historique des modifications** : Consultez toutes les modifications apportées
-- **Copie et téléchargement** : Exportez vos prompts en un clic
-
-## 🚀 Démarrage Rapide
-
-### Prérequis
-- Node.js 16+ 
-- Compte Netlify (gratuit)
-- Compte MongoDB Atlas (gratuit)
-- Clé API Google AI Studio (gratuite)
-
-### Installation
-
-1. **Cloner ou télécharger le projet**
-```bash
-cd studio-djaidani-final
+Vous avez besoin de ces fichiers :
 ```
-
-2. **Installer les dépendances**
-```bash
-npm install
-```
-
-3. **Configurer les variables d'environnement**
-
-Créez un fichier `.env` à la racine :
-```env
-MONGODB_URI=mongodb+srv://votre-uri-mongodb
-```
-
-4. **Lancer en local**
-```bash
-npm run dev
-```
-
-5. **Déployer sur Netlify**
-```bash
-npm run deploy
-```
-
-## 📁 Structure du Projet
-
-```
-studio-djaidani-final/
-├── index.html              # Page principale
-├── styles.css              # Styles (1658 lignes)
-├── config.js               # Configuration
-├── database.js             # Gestion MongoDB
-├── gemini.js               # API Gemini
-├── app.js                  # Application principale (866 lignes)
-├── netlify/
-│   └── functions/         # Serverless functions
-│       ├── save-prompt.js
-│       ├── get-prompts.js
-│       ├── update-prompt.js
-│       ├── delete-prompt.js
-│       └── test-connection.js
+studio-djaidani/
+├── index.html
+├── styles.css
+├── config.js (✅ CORRIGÉ)
+├── database.js
+├── gemini.js
+├── app.js
 ├── package.json
 ├── netlify.toml
-└── README.md
+└── netlify/
+    └── functions/
+        ├── test-connection.js
+        ├── save-prompt.js
+        ├── get-prompts.js
+        ├── update-prompt.js
+        └── delete-prompt.js
 ```
 
-## 🔧 Configuration
+### 2. Déployer sur Netlify
 
-### Clé API Google AI Studio
+#### Option A : Via GitHub (Recommandé)
 
-1. Allez sur [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Créez une nouvelle clé API
-3. Copiez la clé dans `config.js`
+1. **Créer un dépôt GitHub**
+   - Aller sur https://github.com/new
+   - Nommer le dépôt : `studio-djaidani-1943`
+   - Créer le dépôt
 
-### MongoDB Atlas
+2. **Uploader les fichiers**
+   - Cliquer sur "uploading an existing file"
+   - Glisser-déposer tous les fichiers
+   - Commit les changements
 
-1. Créez un cluster gratuit sur [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Créez un utilisateur de base de données
-3. Autorisez l'accès réseau (0.0.0.0/0 pour Netlify)
-4. Copiez l'URI de connexion
+3. **Connecter à Netlify**
+   - Aller sur https://app.netlify.com
+   - Cliquer "Add new site" → "Import an existing project"
+   - Choisir GitHub
+   - Sélectionner votre dépôt
+   - Configuration :
+     - Build command : `npm install`
+     - Publish directory : `.`
+   - Cliquer "Deploy site"
 
-### Déploiement Netlify
+#### Option B : Via Netlify Drop (Plus rapide)
 
-1. Connectez votre repository Git
-2. Configurez les variables d'environnement dans Netlify
-3. Déployez automatiquement
+1. **Zipper les fichiers**
+   - Sélectionner TOUS les fichiers (pas le dossier parent)
+   - Créer une archive ZIP
 
-## 💡 Utilisation
+2. **Déployer**
+   - Aller sur https://app.netlify.com/drop
+   - Glisser-déposer le fichier ZIP
+   - Attendre le déploiement
 
-### Créer un Prompt
+### 3. Configuration des variables d'environnement
 
-1. **Sélectionner le genre** : Garçon ou Fille
-2. **Écrire en français** : Décrivez votre vision (min 10 mots)
-3. **Générer** : L'IA transforme votre texte en prompt professionnel
-4. **Modifier** : Ajoutez des modifications en français si nécessaire
-5. **Sauvegarder** : Conservez votre prompt pour usage futur
+⚠️ **IMPORTANT** : Après le déploiement :
 
-### Gérer vos Prompts
+1. Dans Netlify, aller dans :
+   - Site settings → Environment variables
 
-- **Archives** : Consultez tous vos prompts sauvegardés
-- **Recherche** : Trouvez rapidement un prompt par titre ou contenu
-- **Filtres** : Filtrez par genre (Garçon/Fille)
-- **Tri** : Triez par date ou par titre
+2. Ajouter ces variables :
+   ```
+   MONGODB_URI=mongodb+srv://djaidaniadam02_db_user:0WZcqW2iFYDyiDtb@cluster0.vlltcxf.mongodb.net/?retryWrites=true&w=majority&appName=cluster0
+   
+   GOOGLE_AI_API_KEY=AIzaSyChPuVLJTY_oKhUNYZA5IT8x5Ft7SlugOs
+   ```
+
+3. **Redéployer le site** :
+   - Aller dans Deploys
+   - Cliquer "Trigger deploy" → "Deploy site"
+
+## 🔧 Configuration MongoDB Atlas
+
+### Configurer l'accès réseau
+
+1. Aller sur https://cloud.mongodb.com
+2. Cliquer sur "Network Access"
+3. Cliquer "Add IP Address"
+4. Choisir "Allow Access from Anywhere" (0.0.0.0/0)
+5. Sauvegarder
+
+## ✅ Vérification
+
+Une fois déployé :
+
+1. Ouvrir votre site Netlify
+2. Aller dans l'onglet "Synchronisation"
+3. Cliquer "Tester la connexion"
+4. Vous devriez voir : ✅ "Connexion réussie"
+
+## 🎯 Fonctionnalités
+
+### Page d'accueil
+- Statistiques en temps réel
+- Prompts récents
+- Accès rapide aux fonctions
+
+### Création de prompts
+- Sélection du genre (Garçon/Fille)
+- Description en français
+- Génération automatique avec IA Gemini
+- Modifications personnalisées
+- Prévisualisation
+
+### Archives
+- Liste complète des prompts
+- Recherche et filtres
+- Modification et suppression
+- Export des données
 
 ### Synchronisation
+- Test de connexion MongoDB
+- Sync automatique ou manuel
+- Sauvegarde locale
+- Import/Export de données
 
-- **Automatique** : Activez la synchronisation automatique
-- **Manuelle** : Synchronisez à la demande
-- **Export** : Téléchargez toutes vos données en JSON
-- **Import** : Restaurez vos données depuis un fichier
+## 🛠️ Technologies utilisées
 
-## 🎯 Templates de Prompts
+- **Frontend** : HTML5, CSS3, JavaScript (Vanilla)
+- **Backend** : Netlify Functions (Serverless)
+- **Base de données** : MongoDB Atlas
+- **IA** : Google Gemini 1.5 Flash
+- **Hébergement** : Netlify
 
-### Template Masculin
-- Portrait ultra-réaliste en tenue formelle
-- Drapeau algérien drapé
-- Carte d'Algérie en arrière-plan
-- Titre "ALGÉRIE" en or/vert
-- Spécifications techniques 8K
+## 📱 Responsive Design
 
-### Template Féminin
-- Portrait ultra-réaliste respectueux
-- Option hijab préservée
-- Drapeau algérien drapé
-- Carte d'Algérie en arrière-plan
-- Titre "ALGÉRIE" en or/vert
-- Spécifications techniques 8K
+L'application est entièrement responsive et fonctionne sur :
+- 📱 Mobile (320px+)
+- 📱 Tablette (768px+)
+- 💻 Desktop (1024px+)
+
+## 🌙 Thèmes
+
+- 🌞 Mode clair
+- 🌙 Mode sombre
+- Sauvegarde automatique des préférences
 
 ## 🔒 Sécurité
 
-- **HTTPS** : Toutes les communications sont chiffrées
-- **CORS** : Configuration sécurisée
-- **Sanitization** : Nettoyage des entrées utilisateur
-- **Rate limiting** : Protection contre les abus
+- Variables d'environnement pour les clés API
+- Validation des données côté serveur
+- Protection contre les injections
+- CORS configuré
 
-## 🌐 Compatibilité
+## 📞 Support
 
-### Navigateurs Supportés
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-
-### Appareils
-- ✅ Desktop (Windows, Mac, Linux)
-- ✅ Mobile (iOS, Android)
-- ✅ Tablettes
-
-## 📝 Changelog
-
-### Version 2.0.0 (Actuelle)
-- ✨ Refonte complète de l'interface
-- 🚀 Intégration API Gemini 1.5 Flash
-- 💾 Système de synchronisation MongoDB
-- 🎨 Mode sombre
-- 📱 Design responsive amélioré
-- 🔄 Historique des modifications
-- 📊 Statistiques avancées
-- 🔒 Sécurité renforcée
-
-### Version 1.0.0
-- 🎉 Première version
-- Génération basique de prompts
-- Stockage local uniquement
-
-## 🤝 Support
-
-Pour toute question ou problème :
-- 📧 Email : support@studiodjaidani.com
-- 🐛 Issues : GitHub Issues
-- 📚 Documentation : [Wiki](https://github.com/studio-djaidani/wiki)
+Pour tout problème :
+1. Vérifier que MongoDB autorise toutes les IP
+2. Vérifier les variables d'environnement dans Netlify
+3. Consulter les logs Netlify Functions
+4. Tester la connexion dans l'onglet Synchronisation
 
 ## 📄 Licence
 
-MIT License - voir le fichier LICENSE pour plus de détails
-
-## 👥 Auteurs
-
-**Studio Photo Djaidani** - Fondé en 1943
+© 2024 Studio Photo Djaidani 1943 - Tous droits réservés
 
 ---
 
-Made with ❤️ for Algeria 🇩🇿
+**Version** : 2.0.0  
+**Dernière mise à jour** : Février 2024  
+**Développé avec** : ❤️ pour Studio Photo Djaidani
